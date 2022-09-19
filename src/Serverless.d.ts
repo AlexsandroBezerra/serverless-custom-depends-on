@@ -40,7 +40,7 @@ declare namespace Serverless {
   interface CfnResource {
     Type: CfnResourceType
     Properties: {}
-    DependsOn?: string[]
+    DependsOn?: string[] | string
   }
 
   interface Options {

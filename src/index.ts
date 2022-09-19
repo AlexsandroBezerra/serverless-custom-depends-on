@@ -66,13 +66,14 @@ class Plugin {
   }
 
   addDependsOnRule(validatorsRefs: CfnResourcePair[]) {
-    validatorsRefs.forEach((valuilatorRef, index) => {
-      const resource = valuilatorRef.resource;
-      const dependsOn = resource.DependsOn || [];
+    validatorsRefs.forEach((valilatorRef, index) => {
+      const resource = valilatorRef.resource;
       const nextValidator = validatorsRefs[index + 1];
-      this.log(`Adding DependsOn rule for ${valuilatorRef.name}`);
+      this.log(`Adding DependsOn rule for ${valilatorRef.name}`);
+
       if (nextValidator) {
-        dependsOn.push(nextValidator.name);
+        let dependsOn = resource.DependsOn || [];
+        Array.isArray(dependsOn) ? dependsOn.push(nextValidator.name) : dependsOn = [dependsOn, nextValidator.name];
         resource.DependsOn = dependsOn;
       }
     })
