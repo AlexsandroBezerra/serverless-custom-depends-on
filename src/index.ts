@@ -73,7 +73,15 @@ class Plugin {
 
       if (nextValidator) {
         let dependsOn = resource.DependsOn || [];
-        Array.isArray(dependsOn) ? dependsOn.push(nextValidator.name) : dependsOn = [dependsOn, nextValidator.name];
+
+        if (Array.isArray(dependsOn)) {
+          if (!dependsOn.includes(nextValidator.name)) {
+            dependsOn.push(nextValidator.name);
+          }
+        } else {
+          dependsOn = [dependsOn, nextValidator.name];
+        }
+
         resource.DependsOn = dependsOn;
       }
     })

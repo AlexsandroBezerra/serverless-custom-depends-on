@@ -1,6 +1,6 @@
 {
   "name": "serverless-custom-depends-on",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Serverless plugin to add custom dependsOn to CloudFormation resouces",
   "author": "Alexsandro G Bezerra <alexsandro.g.bezerra@gmail.com>",
   "license": "MIT",
