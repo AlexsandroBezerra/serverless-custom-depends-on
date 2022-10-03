@@ -1,16 +1,19 @@
-interface CfnResourcePair {
-  name: string;
-  resource: Serverless.CfnResource;
+import Graph from 'graph-data-structure';
+
+import { FilterHelper } from './helpers/filter';
+import { GraphHelper } from './helpers/graph';
+
+interface GraphSerilized {
+  nodes: Array<{ id: string }>;
+  links: Array<{ source: string; target: string; }>
 }
 
 class Plugin {
   readonly pluginName = 'serverless-custom-depends-on';
   readonly serverless: Serverless.Instance;
-  readonly options: Serverless.Options;
-  readonly commands: { [key: string]: any };
   readonly hooks: { [key: string]: Function };
 
-  constructor(serverless: Serverless.Instance, options: Serverless.Options) {
+  constructor(serverless: Serverless.Instance) {
     this.serverless = serverless;
     this.hooks = {
       'before:package:finalize': () => this.execute(),
@@ -25,66 +28,93 @@ class Plugin {
     if (!this.serverless.service.provider.compiledCloudFormationTemplate) {
       throw new Error('This plugin needs access to the compiled CloudFormation template');
     }
-  }
-
-  filterResourcesByType(
-    resources: Serverless.CfnResourceList, 
-    type: Serverless.CfnResourceType
-  ): CfnResourcePair[] {
-    const filtered = Object.entries(resources).filter((obj: [string, Serverless.CfnResource]) => {
-      const value = obj[1];
-      return value.Type === type;
-    });
-    return filtered.map((obj) => {
-      return {
-        name: obj[0],
-        resource: obj[1],
-      };
-    });
+    if (!this.serverless.service.custom[this.pluginName]) {
+      throw new Error(`Missing custom.${this.pluginName} configuration`);
+    }
+    if (!Array.isArray(this.serverless.service.custom[this.pluginName])) {
+      throw new Error(`custom.${this.pluginName} must be an array`);
+    }
+    if (this.serverless.service.custom[this.pluginName].some((item) => typeof item !== 'string')) {
+      throw new Error(`custom.${this.pluginName} must be an array of string`);
+    }
   }
 
   execute() {
     this.validate();
+
     const service = this.serverless.service;
-
     const pluginConfig = service.custom[this.pluginName];
+    const resources = service.provider.compiledCloudFormationTemplate.Resources;
 
-    this.log(JSON.stringify(pluginConfig, null, 2));
+    this.log(`Resources to enabled DependsOn rule: ${pluginConfig.toString()}`);
 
-    const template = service.provider.compiledCloudFormationTemplate;
-    const resources = template.Resources;
-
-    this.log(`resourcesToEnabledDependsOn: ${JSON.stringify(pluginConfig)}`);
-
-    const validators = pluginConfig.map((name) => {
-      return this.filterResourcesByType(resources, name)
+    const dependenciesGraphsByType = pluginConfig.map((name) => {
+      return GraphHelper.resouceListToGraph(
+        FilterHelper.filterResourcesByType(resources, name)
+      );
     });
 
-    validators.forEach((validator) => {
-      this.addDependsOnRule(validator);
+    this.log('Resolving dependencies...');
+
+    const resolvedDependenciesGraphs = dependenciesGraphsByType.map(dependenciesGraph => {
+      return this.resolveDependencies(dependenciesGraph);
+    });
+
+    this.log('Adding DependsOn rule...');
+
+    resolvedDependenciesGraphs.forEach((graph) => {
+      this.addDependsOnRule(resources, graph.serialize());
     });
   }
 
-  addDependsOnRule(validatorsRefs: CfnResourcePair[]) {
-    validatorsRefs.forEach((valilatorRef, index) => {
-      const resource = valilatorRef.resource;
-      const nextValidator = validatorsRefs[index + 1];
-      this.log(`Adding DependsOn rule for ${valilatorRef.name}`);
+  resolveDependencies(graph: ReturnType<typeof Graph>): ReturnType<typeof Graph> {
+    do {
+      const head = GraphHelper.getHeads(graph)[0];
+      
+      for (const tail of GraphHelper.getTails(graph)) {
+        if (head && tail) {
+          if (head !== tail) {
+            if (!graph.hasEdge(head, tail)) {
+              graph.addEdge(tail, head);
 
-      if (nextValidator) {
-        let dependsOn = resource.DependsOn || [];
-
-        if (Array.isArray(dependsOn)) {
-          if (!dependsOn.includes(nextValidator.name)) {
-            dependsOn.push(nextValidator.name);
+              if (graph.hasCycle()) {
+                graph.removeEdge(tail, head);
+              } else {
+                break;
+              }
+            }
           }
-        } else {
-          dependsOn = [dependsOn, nextValidator.name];
         }
-
-        resource.DependsOn = dependsOn;
       }
-    })
+    } while (GraphHelper.getHeads(graph).length > 1);
+
+    return graph
+  }
+
+  addDependsOnRule(
+    resourcesRef: Serverless.CfnResourceList,
+    graph: GraphSerilized
+  ) {
+    graph.links.forEach((link) => {
+      const resource = resourcesRef[link.source];
+      const dependsOn = new Set<string>();
+
+      if (resource.DependsOn) {
+        const dependsOnArray = Array.isArray(resource.DependsOn)
+          ? resource.DependsOn
+          : [resource.DependsOn];
+
+        dependsOnArray.forEach((dep) => {
+          dependsOn.add(dep);
+        });
+      }
+
+      this.log(`Adding DependsOn rule to ${link.source} -> ${link.target}`);
+
+      dependsOn.add(link.target);
+
+      resource.DependsOn = Array.from(dependsOn);
+    });
   }
 }
 
