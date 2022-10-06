@@ -6,15 +6,21 @@ export class GraphHelper {
   ): ReturnType<typeof Graph> {
     const graph = Graph();
 
-    Object.entries(resources).forEach(([name, resource]) => {
+    Object.keys(resources).forEach((name) => {
       graph.addNode(name);
+    });
 
+    const nodes = graph.nodes();
+
+    Object.entries(resources).forEach(([name, resource]) => {
       if (resource.DependsOn) {
         const dependsOn =
           Array.isArray(resource.DependsOn) ? resource.DependsOn : [resource.DependsOn];
 
         dependsOn.forEach((dep) => {
-          graph.addEdge(name, dep);
+          if (nodes.includes(dep)) {
+            graph.addEdge(name, dep);
+          }
         });
       }
     });
