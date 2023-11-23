@@ -43,12 +43,6 @@ declare namespace Serverless {
     DependsOn?: string[] | string
   }
 
-  interface Options {
-    function?: string
-    watch?: boolean
-    extraServicePath?: string
-  }
-
   interface Function {
     handler: string
     package: Serverless.Package
@@ -61,23 +55,6 @@ declare namespace Serverless {
     artifact?: string
     individually?: boolean
   }
-
-  type CommandsDefinition = Record<
-      string,
-      {
-        lifecycleEvents?: string[]
-        commands?: CommandsDefinition
-        usage?: string
-        options?: {
-          [name: string]: {
-            type: string
-            usage: string
-            required?: boolean
-            shortcut?: string
-          }
-        }
-      }
-      >
 
   interface PluginManager {
     spawn(command: string): Promise<void>

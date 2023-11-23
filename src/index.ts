@@ -3,7 +3,7 @@ import Graph from 'graph-data-structure';
 import { FilterHelper } from './helpers/filter';
 import { GraphHelper } from './helpers/graph';
 
-interface GraphSerilized {
+interface GraphSerialized {
   nodes: Array<{ id: string }>;
   links: Array<{ source: string; target: string; }>
 }
@@ -49,7 +49,7 @@ class Plugin {
     this.log(`Resources to enabled DependsOn rule: ${pluginConfig.toString()}`);
 
     const dependenciesGraphsByType = pluginConfig.map((name) => {
-      return GraphHelper.resouceListToGraph(
+      return GraphHelper.resourceListToGraph(
         FilterHelper.filterResourcesByType(resources, name)
       );
     });
@@ -93,7 +93,7 @@ class Plugin {
 
   addDependsOnRule(
     resourcesRef: Serverless.CfnResourceList,
-    graph: GraphSerilized
+    graph: GraphSerialized
   ) {
     graph.links.forEach((link) => {
       const resource = resourcesRef[link.source];

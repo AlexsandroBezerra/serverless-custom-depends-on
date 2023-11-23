@@ -1,7 +1,7 @@
 import Graph from 'graph-data-structure';
 
 export class GraphHelper {
-  public static resouceListToGraph(
+  public static resourceListToGraph(
     resources: Serverless.CfnResourceList
   ): ReturnType<typeof Graph> {
     const graph = Graph();
