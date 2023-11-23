@@ -48,11 +48,7 @@
   "jest": {
     "preset": "ts-jest",
     "testRegex": "(/__tests__/.*|\\.(test|spec))\\.ts$",
-    "moduleFileExtensions": [
-      "ts",
-      "tsx",
-      "js"
-    ]
+    "moduleFileExtensions": ["ts"]
   },
   "dependencies": {
     "graph-data-structure": "^2.0.0"

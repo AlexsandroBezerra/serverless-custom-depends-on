@@ -1,7 +1,8 @@
-/.DS_Store
-/coverage
-/dist
+# Dependencies
 /node_modules
-/package-lock.json
-/yarn.lock
+
+# Distribution
+/dist
+
+# Logs
 npm-debug.log
