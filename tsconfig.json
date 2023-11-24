@@ -5,6 +5,7 @@
     "esModuleInterop": true,
     "moduleResolution": "node",
     "sourceMap": true,
+    "strictNullChecks": true,
     "target": "es6",
     "outDir": "dist",
     "rootDir": "./src",

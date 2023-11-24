@@ -2,7 +2,7 @@
 declare namespace Serverless {
   interface Instance {
     cli: {
-      log(str: string): void
+      log: (str: string) => void
     }
 
     config: {
@@ -14,11 +14,9 @@ declare namespace Serverless {
         name: string
         compiledCloudFormationTemplate: CloudFormationTemplate
       }
-      functions: {
-        [key: string]: Serverless.Function
-      }
+      functions: Record<string, Serverless.Function>
       package: Serverless.Package
-      getAllFunctions(): string[]
+      getAllFunctions: () => string[]
       custom?: {
         'serverless-custom-depends-on'?: string[]
       }
@@ -27,9 +25,7 @@ declare namespace Serverless {
     pluginManager: PluginManager
   }
 
-  type CfnResourceList = {
-    [key: string]: CfnResource
-  }
+  type CfnResourceList = Record<string, CfnResource>
 
   interface CloudFormationTemplate {
     Resources: CfnResourceList
@@ -39,7 +35,7 @@ declare namespace Serverless {
 
   interface CfnResource {
     Type: CfnResourceType
-    Properties: {}
+    Properties: Record<string, unknown>
     DependsOn?: string[] | string
   }
 
@@ -57,6 +53,6 @@ declare namespace Serverless {
   }
 
   interface PluginManager {
-    spawn(command: string): Promise<void>
+    spawn: (command: string) => Promise<void>
   }
 }
