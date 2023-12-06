@@ -1,8 +1,6 @@
 import { describe } from 'vitest'
 import { filterResourcesByType } from './filter'
 
-import CfnResourceList = Serverless.CfnResourceList
-
 describe('filterResourcesByType', (it) => {
   it('should filter resources by type', ({ expect }) => {
     const resources = {
@@ -12,7 +10,7 @@ describe('filterResourcesByType', (it) => {
       Resource2: {
         Type: 'AWS::ApiGateway::Method'
       }
-    } as unknown as CfnResourceList
+    } as unknown as Serverless.CfnResourceList
 
     const filtered = filterResourcesByType(resources, 'AWS::Lambda::Function')
 
@@ -28,7 +26,7 @@ describe('filterResourcesByType', (it) => {
       Resource2: {
         Type: 'AWS::ApiGateway::Method'
       }
-    } as unknown as CfnResourceList
+    } as unknown as Serverless.CfnResourceList
 
     const filtered = filterResourcesByType(resources, 'AWS::S3::Bucket')
 
@@ -36,7 +34,7 @@ describe('filterResourcesByType', (it) => {
   })
 
   it('should return empty object if no resources', ({ expect }) => {
-    const resources = {} as unknown as CfnResourceList
+    const resources = {} as unknown as Serverless.CfnResourceList
 
     const filtered = filterResourcesByType(resources, 'AWS::S3::Bucket')
 
