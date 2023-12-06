@@ -28,10 +28,8 @@ jobs:
 
       - name: Create release
         uses: softprops/action-gh-release@v1
-        with:
-          files: |
-            dist/*
-            README.md
-            LICENSE
-            package.json
-            package-lock.json
+
+      - name: Publish package
+        run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
